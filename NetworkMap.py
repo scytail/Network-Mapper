@@ -47,8 +47,21 @@ def ipNetworkFromMask(addressString,subnetMaskString):
     return ipaddr.ip_network("{0}/{1}".format(addressString,subnetMaskString))
 #------------------------------------------------------------------------------------------------------
 
+#Open file and read in list of vlans to a list
+vlans = []
 
-   
+with open("FST-E-FWSM-NOTES-20160907.txt") as f:
+  for line in f:
+    if line ==  "fst-e-fwsm/FST-E-WEB-DMZ# sh ip addr\n":
+      line = next(f)
+      line = next(f)
+      line = next(f)
+      while line != "Current IP Addresses:\n":
+        vlans.append(line)
+        line = next(f)
+
+print (vlans[0])
+'''      
 graph=nx.Graph()
 graph.add_edges_from([("Firewall-a","b-DMZ\n{0}".format(ipNetworkFromMask("192.168.1.0","255.255.255.0"))),
                   ("Firewall-a","c-VLAN1\n{0}".format(ipNetworkFromMask("192.168.0.0","255.255.0.0"))),
@@ -57,3 +70,4 @@ graph.add_edges_from([("Firewall-a","b-DMZ\n{0}".format(ipNetworkFromMask("192.1
 pos = hierarchy_pos(graph,"Firewall-a")
 nx.draw(graph, pos=pos, with_labels=True)
 plt.show()
+'''
