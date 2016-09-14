@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import ipaddress as ipaddr
 
 #http://stackoverflow.com/questions/29586520/can-one-get-hierarchical-graphs-from-networkx-with-python-3
 def hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 ):
@@ -35,15 +36,24 @@ def hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5
         return pos
 
     return h_recur(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5)
+
+def ipNetworkFromMask(addressString,subnetMaskString):
+    '''
+       Converts a given address (in the form of a string)
+       and a subnet mask (as a string) to an IPv4Network object,
+       which allows manipulation and displays as a CIDR notated network.
+       `ipaddress` objects also error check for incorrect networks.
+    '''
+    return ipaddr.ip_network("{0}/{1}".format(addressString,subnetMaskString))
 #------------------------------------------------------------------------------------------------------
 
 
    
-G=nx.Graph()
-G.add_edges_from([("a","b\n192.168.1.1\n255.255.255.0"),
-                  ("a","c\n192.168.1.100\n255.255.0.0"),
-                  ("a","d\n192.168.1.200\n255.0.0.0")
+graph=nx.Graph()
+graph.add_edges_from([("Firewall-a","b-DMZ\n{0}".format(ipNetworkFromMask("192.168.1.0","255.255.255.0"))),
+                  ("Firewall-a","c-VLAN1\n{0}".format(ipNetworkFromMask("192.168.0.0","255.255.0.0"))),
+                  ("Firewall-a","d-VLAN2\n{0}".format(ipNetworkFromMask("192.0.0.0","255.0.0.0")))
                 ])
-pos = hierarchy_pos(G,"a")    
-nx.draw(G, pos=pos, with_labels=True)
+pos = hierarchy_pos(graph,"Firewall-a")
+nx.draw(graph, pos=pos, with_labels=True)
 plt.show()
