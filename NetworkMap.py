@@ -43,34 +43,43 @@ def ipNetworkFromMask(addressString,subnetMaskString):
        which allows manipulation and displays as a CIDR notated network.
     '''
     return ipaddr.ip_network("{0}/{1}".format(addressString,subnetMaskString),strict=False)
-#------------------------------------------------------------------------------------------------------
 
-#static variables used when reading the individual vlan data lists
-VLAN_INTERFACE_INDEX=0
-VLAN_NAME_INDEX=1
-VLAN_IP_INDEX=2
-VLAN_MASK_INDEX=3
+def readConfigFile(fileNameString):
+    '''
+       Reads a given firewall configuration file for its VLAN configuations
+    '''
+    #static variables used when reading the individual vlan data lists
+    VLAN_INTERFACE_INDEX=0
+    VLAN_NAME_INDEX=1
+    VLAN_IP_INDEX=2
+    VLAN_MASK_INDEX=3
+    READ_START_LINE="fst-e-fwsm/FST-E-WEB-DMZ# sh ip addr\n"
+    READ_END_LINE="Current IP Addresses:\n"
+    
+    #Open file and read in list of vlans to a list
+    vlans = []
+    with open(fileNameString) as f:
+        for line in f:
+            if line ==  READ_START_LINE:#skip header information
+                #feed the file through to the proper point
+                line = next(f)
+                line = next(f)
+                line = next(f)
+                while line != READ_END_LINE:
+                    lineList = line.split()#dissect line into a list for easier parsing
+                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+                    
+                    vlanData = [lineList[VLAN_INTERFACE_INDEX],lineList[VLAN_NAME_INDEX],ipNetwork]#re-create the list with better parsing
+                    vlans.append(vlanData)
+                    
+                    line = next(f)
+                break #don't need to keep reading the file if we already found what we want, so break the for loop.
+    return vlans
+#------------------------------------------------------------------------------------------------------
 
 print("Reading file and compiling VLAN data...")
 
-#Open file and read in list of vlans to a list
-vlans = []
-with open("FST-E-FWSM-NOTES-20160907.txt") as f:
-    for line in f:
-        if line ==  "fst-e-fwsm/FST-E-WEB-DMZ# sh ip addr\n":#skip header information
-            #feed the file through to the proper point
-            line = next(f)
-            line = next(f)
-            line = next(f)
-            while line != "Current IP Addresses:\n":
-                lineList = line.split()#dissect line into a list for easier parsing
-                ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                
-                vlanData = [lineList[VLAN_INTERFACE_INDEX],lineList[VLAN_NAME_INDEX],ipNetwork]#re-create the list with better parsing
-                vlans.append(vlanData)
-                
-                line = next(f)
-            break #don't need to keep reading the file if we already found what we want, so break the for loop.
+vlans = readConfigFile("FST-E-FWSM-NOTES-20160907.txt")#FIXME: HARD-CODED
 
 print("Parsing VLAN data...")
 
