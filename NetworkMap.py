@@ -49,44 +49,49 @@ def readConfigFile(fileNameString):
        Reads a given firewall configuration file for its VLAN configuations
     '''
     #static variables used when reading the individual vlan data lists
-    VLAN_INTERFACE_INDEX=0
-    VLAN_NAME_INDEX=1
-    VLAN_IP_INDEX=2
-    VLAN_MASK_INDEX=3
-    READ_START_LINE="fst-e-fwsm/FST-E-WEB-DMZ# sh ip addr\n"
-    READ_END_LINE="Current IP Addresses:\n"
+    CONFIG_TAG_INDEX = 0
+    NAME_INDEX = 1
+    VLAN_IP_INDEX = 1
+    VLAN_MASK_INDEX = 2
     
     #Open file and read in list of vlans to a list
     vlans = []
     with open(fileNameString) as f:
         for line in f:
-            if line ==  READ_START_LINE:#skip header information
+            if line ==  "!":#found relevant data
                 #feed the file through to the proper point
                 line = next(f)
-                line = next(f)
-                line = next(f)
-                while line != READ_END_LINE:
-                    lineList = line.split()#dissect line into a list for easier parsing
-                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                    
-                    vlanData = [lineList[VLAN_INTERFACE_INDEX],lineList[VLAN_NAME_INDEX],ipNetwork]#re-create the list with better parsing
-                    vlans.append(vlanData)
-                    
+                lineList = line.split()#dissect line into a list for easier parsing
+                if lineList[CONFIG_TAG_INDEX] == "hostname":
+                    #TODO: Parse the hostname
+                    pass
+                elif lineList[CONFIG_TAG_INDEX] == "interface":
+                    name = lineList[NAME_INDEX]
+                    #feed the file through to the proper point
                     line = next(f)
-                break #don't need to keep reading the file if we already found what we want, so break the for loop.
+                    line = next(f)
+                    line = next(f)
+                    
+                    lineList = line.split()
+                    
+                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+                    vlanData = [name,ipNetwork]#re-create the list with better parsing
+                    vlans.append(vlanData)
+                else:
+                    break #don't need to keep reading the file if we already found what we want, so break the for loop.
     return vlans
 #------------------------------------------------------------------------------------------------------
 
 print("Reading file and compiling VLAN data...")
 
-vlans = readConfigFile("FST-E-FWSM-NOTES-20160907.txt")#FIXME: HARD-CODED
+vlans = readConfigFile("FST-E-WEB-DMZ-Config.txt")#FIXME: HARD-CODED
 
 print("Parsing VLAN data...")
 
 #static variables used when reading parsed vlan data and compiling the graph information
-FIREWALL_NAME = "Firewall-a"
-VLAN_DATA_NAME = 1
-VLAN_DATA_IP_NETWORK = 2
+FIREWALL_NAME = "FST­-E-­WEB-­DMZ"
+VLAN_DATA_NAME = 0
+VLAN_DATA_IP_NETWORK = 1
 
 graphData = []
 
@@ -99,5 +104,5 @@ print("Rendering VLAN data...")
 graph=nx.Graph()
 graph.add_edges_from(graphData)
 pos = hierarchy_pos(graph,FIREWALL_NAME)
-nx.draw(graph, pos=pos, with_labels=True)
+nx.draw(graph, pos=pos, with_labels=True, node_shape='s') #, node_size=[len(v) * 300 for v in graph.nodes()]
 plt.show()
