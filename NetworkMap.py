@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import ipaddress as ipaddr
 
 #http://stackoverflow.com/questions/29586520/can-one-get-hierarchical-graphs-from-networkx-with-python-3
-def hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 ):
+def hierarchy_pos(G, root, width=1, vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 ):
     '''If there is a cycle that is reachable from root, then result will not be a hierarchy.
        G: the graph
        root: the root node of current branch
@@ -51,35 +51,33 @@ def readConfigFile(fileNameString):
     #static variables used when reading the individual vlan data lists
     CONFIG_TAG_INDEX = 0
     NAME_INDEX = 1
-    VLAN_IP_INDEX = 1
-    VLAN_MASK_INDEX = 2
+    VLAN_IP_INDEX = 2
+    VLAN_MASK_INDEX = 3
     
     #Open file and read in list of vlans to a list
     vlans = []
     with open(fileNameString) as f:
-        for line in f:
-            if line ==  "!":#found relevant data
-                #feed the file through to the proper point
-                line = next(f)
-                lineList = line.split()#dissect line into a list for easier parsing
-                if lineList[CONFIG_TAG_INDEX] == "hostname":
-                    #TODO: Parse the hostname
-                    pass
-                elif lineList[CONFIG_TAG_INDEX] == "interface":
-                    name = lineList[NAME_INDEX]
-                    #feed the file through to the proper point
-                    line = next(f)
-                    line = next(f)
-                    line = next(f)
-                    
-                    lineList = line.split()
-                    
-                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                    vlanData = [name,ipNetwork]#re-create the list with better parsing
-                    vlans.append(vlanData)
-                else:
-                    break #don't need to keep reading the file if we already found what we want, so break the for loop.
-    return vlans
+      for line in f:
+        if line ==  "!\n":#found relevant data
+          print(line)
+          #feed the file through to the proper point
+          line = next(f)
+          lineList = line.split()#dissect line into a list for easier parsing
+          if lineList[CONFIG_TAG_INDEX] == "hostname":
+            #TODO: Parse the hostname
+            pass
+          elif lineList[CONFIG_TAG_INDEX] == "interface":
+            name = lineList[NAME_INDEX]
+            #feed the file through to the proper point
+            while "ip" not in line:
+              line = next(f)     
+            lineList = line.split()  
+            ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+            vlanData = [name,ipNetwork]#re-create the list with better parsing
+            vlans.append(vlanData)
+        else:
+            line = next(f) #don't need to keep reading the file if we already found what we want, so break the for loop.
+    return vlans 
 #------------------------------------------------------------------------------------------------------
 
 print("Reading file and compiling VLAN data...")
@@ -89,7 +87,7 @@ vlans = readConfigFile("FST-E-WEB-DMZ-Config.txt")#FIXME: HARD-CODED
 print("Parsing VLAN data...")
 
 #static variables used when reading parsed vlan data and compiling the graph information
-FIREWALL_NAME = "FST­-E-­WEB-­DMZ"
+FIREWALL_NAME = "FST-E-WEB-DMZ"
 VLAN_DATA_NAME = 0
 VLAN_DATA_IP_NETWORK = 1
 
@@ -104,5 +102,5 @@ print("Rendering VLAN data...")
 graph=nx.Graph()
 graph.add_edges_from(graphData)
 pos = hierarchy_pos(graph,FIREWALL_NAME)
-nx.draw(graph, pos=pos, with_labels=True, node_shape='s') #, node_size=[len(v) * 300 for v in graph.nodes()]
+nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
 plt.show()
