@@ -2,7 +2,7 @@
 A python script that maps network configurations visually.
 
 **Authors:**
-- Kevin Njuguna
+- Kevin Njuguna [njuguna@slu.edu]
 - Ben Schwabe [schwabebp@slu.edu]
 
 ##Requirements
