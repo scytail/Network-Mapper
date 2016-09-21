@@ -1,3 +1,10 @@
+import sys
+
+#checks for available version (ipaddress module included in 3.3 and after)
+version = sys.version_info
+if version[0] < 3 or (version[0] == 3 and version[1] < 3):
+    raise OSError("You are not using the correct version of Python. Python 3.3 or higher is required for this program to execute.")
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import ipaddress as ipaddr
