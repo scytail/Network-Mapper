@@ -57,50 +57,46 @@ def readConfigFile(fileNameString):
     #Open file and read in list of vlans to a list
     vlans = []
     with open(fileNameString) as f:
-      for line in f:
-        if line ==  "!\n":#found relevant data
-          print(line)
-          #feed the file through to the proper point
-          line = next(f)
-          lineList = line.split()#dissect line into a list for easier parsing
-          if lineList[CONFIG_TAG_INDEX] == "hostname":
-            #TODO: Parse the hostname
-            pass
-          elif lineList[CONFIG_TAG_INDEX] == "interface":
-            name = lineList[NAME_INDEX]
-            #feed the file through to the proper point
-            while "ip" not in line:
-              line = next(f)     
-            lineList = line.split()  
-            ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-            vlanData = [name,ipNetwork]#re-create the list with better parsing
-            vlans.append(vlanData)
-        else:
-            line = next(f) #don't need to keep reading the file if we already found what we want, so break the for loop.
-    return vlans 
+        for line in f:
+            if line == "!\n":#found relevant data
+                #feed the file through to the proper point
+                line = next(f)
+                lineList = line.split()#dissect line into a list for easier parsing
+                if lineList[CONFIG_TAG_INDEX] == "hostname":
+                    hostname = lineList[NAME_INDEX]
+                elif lineList[CONFIG_TAG_INDEX] == "interface":
+                    name = lineList[NAME_INDEX]
+                    #feed the file through to the proper point
+                    while "ip" not in line:
+                        line = next(f)         
+                    lineList = line.split()    
+                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+                    vlanData = [name,ipNetwork]#re-create the list with better parsing
+                    vlans.append(vlanData)
+    return (hostname,vlans)
 #------------------------------------------------------------------------------------------------------
 
 print("Reading file and compiling VLAN data...")
 
-vlans = readConfigFile("FST-E-WEB-DMZ-Config.txt")#FIXME: HARD-CODED
+hostname,vlans = readConfigFile("FST-E-WEB-DMZ-Config.txt")#FIXME: HARD-CODED
+hostname = "{0}\n".format(hostname) #formatting!
 
 print("Parsing VLAN data...")
 
 #static variables used when reading parsed vlan data and compiling the graph information
-FIREWALL_NAME = "FST-E-WEB-DMZ"
 VLAN_DATA_NAME = 0
 VLAN_DATA_IP_NETWORK = 1
 
 graphData = []
 
 for vlan in vlans:
-    dataTuple = (FIREWALL_NAME,"{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
+    dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
     graphData.append(dataTuple)#add the tuple to the graph
 
 print("Rendering VLAN data...")
 
 graph=nx.Graph()
 graph.add_edges_from(graphData)
-pos = hierarchy_pos(graph,FIREWALL_NAME)
+pos = hierarchy_pos(graph,hostname)
 nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
 plt.show()
