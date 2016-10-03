@@ -79,37 +79,40 @@ def readConfigFile(fileNameString, contextString):
     vlans = []
     with open(fileNameString) as f:
         for line in f:
+            #Parse through file and look for respective context to map
             while context not in line:
                 line = next(f)
             lineList = line.split()#dissect line into a list for easier parsing  
             hostname = lineList[NAME_INDEX]
-            while "passwd" not  in line:
+            while "passwd " not in line:
                 line = next(f)
+                if "passwd" in line:
+                    break
                 while "interface" not in line:
                     line = next(f)
                 lineList = line.split()
                 interfaceName = lineList[NAME_INDEX]
                 #feed the file through to the proper point
                 while "ip" not in line:
-                    line = next(f)         
-                lineList = line.split()    
+                    line = next(f)
+                lineList = line.split() 
                 ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
                 vlanData = [interfaceName,ipNetwork]#re-create the list with better parsing
                 vlans.append(vlanData)
-            break
-    return (hostname,vlans)
+                line = next(f)
+            return (hostname,vlans)
 #------------------------------------------------------------------------------------------------------
 
 #Process arguments from user with CONFIG FILE NAME and DMZ's to map
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
 parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
-args = parser.parse_args(['--file', '--dmz'])
+args = parser.parse_args()
 if args.file:
     for f in args.file:
         fileName = openFile(f)
-elif args.dmz:
-    for c in dmz:
+if args.dmz:
+    for c in args.dmz:
         contextName = c
 
 
