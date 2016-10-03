@@ -101,6 +101,15 @@ def readConfigFile(fileNameString, contextString):
                 vlans.append(vlanData)
                 line = next(f)
             return (hostname,vlans)
+
+def readCommandlineArguments():
+    #Runs through the list of command line arguments
+    i=1#start at 1, since the first argument is the script call
+    argList = [] #list of all commandline arguments (separated by spaces)
+    while i < len(sys.argv):
+        argList.append(sys.argv[i].strip()) #append the argument to the list (strip any trailing whitespace)
+        i += 1
+    return argList
 #------------------------------------------------------------------------------------------------------
 
 #Process arguments from user with CONFIG FILE NAME and DMZ's to map
