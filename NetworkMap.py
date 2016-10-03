@@ -8,6 +8,8 @@ if version[0] < 3 or (version[0] == 3 and version[1] < 3):
 import networkx as nx
 import matplotlib.pyplot as plt
 import ipaddress as ipaddr
+import argparse                   #Command line arguments
+import os                         #Exception handling
 
 #http://stackoverflow.com/questions/29586520/can-one-get-hierarchical-graphs-from-networkx-with-python-3
 def hierarchy_pos(G, root, width=1, vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 ):
@@ -51,7 +53,17 @@ def ipNetworkFromMask(addressString,subnetMaskString):
     '''
     return ipaddr.ip_network("{0}/{1}".format(addressString,subnetMaskString),strict=False)
 
-def readConfigFile(fileNameString):
+#Function to make sure user has passed valid file"    
+def openFile(fileName):
+    try:
+        open(fileName)
+    except OSError:
+        print ("Invalid configuration file name")
+        sys.exit(0)
+        
+    return(fileName)
+            
+def readConfigFile(fileNameString, contextString):
     '''
        Reads a given firewall configuration file for its VLAN configuations
     '''
@@ -60,32 +72,50 @@ def readConfigFile(fileNameString):
     NAME_INDEX = 1
     VLAN_IP_INDEX = 2
     VLAN_MASK_INDEX = 3
+    context = "hostname " + contextString
+    print(context)
     
     #Open file and read in list of vlans to a list
     vlans = []
     with open(fileNameString) as f:
         for line in f:
-            if line == "!\n":#found relevant data
-                #feed the file through to the proper point
+            while context not in line:
                 line = next(f)
-                lineList = line.split()#dissect line into a list for easier parsing
-                if lineList[CONFIG_TAG_INDEX] == "hostname":
-                    hostname = lineList[NAME_INDEX]
-                elif lineList[CONFIG_TAG_INDEX] == "interface":
-                    name = lineList[NAME_INDEX]
-                    #feed the file through to the proper point
-                    while "ip" not in line:
-                        line = next(f)         
-                    lineList = line.split()    
-                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                    vlanData = [name,ipNetwork]#re-create the list with better parsing
-                    vlans.append(vlanData)
+            lineList = line.split()#dissect line into a list for easier parsing  
+            hostname = lineList[NAME_INDEX]
+            while "passwd" not  in line:
+                line = next(f)
+                while "interface" not in line:
+                    line = next(f)
+                lineList = line.split()
+                interfaceName = lineList[NAME_INDEX]
+                #feed the file through to the proper point
+                while "ip" not in line:
+                    line = next(f)         
+                lineList = line.split()    
+                ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+                vlanData = [interfaceName,ipNetwork]#re-create the list with better parsing
+                vlans.append(vlanData)
+            break
     return (hostname,vlans)
 #------------------------------------------------------------------------------------------------------
 
+#Process arguments from user with CONFIG FILE NAME and DMZ's to map
+parser = argparse.ArgumentParser()
+parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
+parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
+args = parser.parse_args(['--file', '--dmz'])
+if args.file:
+    for f in args.file:
+        fileName = openFile(f)
+elif args.dmz:
+    for c in dmz:
+        contextName = c
+
+
 print("Reading file and compiling VLAN data...")
 
-hostname,vlans = readConfigFile("FST-E-WEB-DMZ-Config.txt")#FIXME: HARD-CODED
+hostname,vlans = readConfigFile(fileName, contextName)#FST-E-WEB-DMZ-Config.txt                     FST-E-FWSM-Contexts
 hostname = "{0}\n".format(hostname) #formatting!
 
 print("Parsing VLAN data...")
