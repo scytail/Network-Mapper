@@ -73,7 +73,7 @@ def readConfigFile(fileNameString, contextString):
     VLAN_IP_INDEX = 2
     VLAN_MASK_INDEX = 3
     context = "hostname " + contextString
-    print(context)
+    hostname = "temp"
     
     #Open file and read in list of vlans to a list
     vlans = []
@@ -89,9 +89,50 @@ def readConfigFile(fileNameString, contextString):
                     raise ValueError("Context Not Found")
             
             if "transparent" in previousLine:#parsing for a bridged firewall, which is configured differently
-                pass
-                #TODO: parse differently if it's a bridged firewall
-            
+                lineList = line.split()#dissect line into a list for easier parsing  
+                hostname = lineList[NAME_INDEX]
+                while "passwd" not in line:
+                    line = next(f)
+                    if "passwd" in line:
+                        break
+                    while "interface" not in line:
+                        line = next(f)
+                    lineList = line.split()
+                    if "inside" in lineList:
+                        interfaceName = lineList[NAME_INDEX]
+                        ipNetwork = "INSIDE_IP"
+                        vlanData = [interfaceName,ipNetwork]
+                        vlans.append(vlanData)
+                        print(vlans)
+                    if "outside" in lineList:
+                        interfaceName = lineList[NAME_INDEX]
+                        ipNetwork = "N/A"
+                        vlanData = [interfaceName,ipNetwork]
+                        vlans.append(vlanData)
+                        print(vlans)
+                    if "BVI1" in lineList:
+                        interfaceName = lineList[NAME_INDEX]
+                        
+                        #for n,i in enumerate(vlans):
+                        #    if i == "inside":
+                        #        vlans[n] = interfaceName
+                        
+                        #vlans = [v.replace('inside',interfaceName) for v in vlans]
+                        
+                        while "ip" not in line:
+                            line = next(f)
+                        lineList = line.split() 
+                        ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+                        
+                        #for n,i in enumerate(vlans):
+                        #    if i == "INSIDE_IP":
+                        #        vlans[n] = ipNetwork
+                        
+                        
+                        #vlans = [v.replace('INSIDE_IP',ipNetwork) for v in vlans]
+                        
+                        vlans.append(vlanData)
+                        print(vlans)
             else:
                 lineList = line.split()#dissect line into a list for easier parsing  
                 hostname = lineList[NAME_INDEX]
