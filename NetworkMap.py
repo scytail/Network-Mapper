@@ -77,29 +77,41 @@ def readConfigFile(fileNameString, contextString):
     
     #Open file and read in list of vlans to a list
     vlans = []
+    noContextFound = False
     with open(fileNameString) as f:
         for line in f:
             #Parse through file and look for respective context to map
             while context not in line:
-                line = next(f)
-            lineList = line.split()#dissect line into a list for easier parsing  
-            hostname = lineList[NAME_INDEX]
-            while "passwd " not in line:
-                line = next(f)
-                if "passwd" in line:
-                    break
-                while "interface" not in line:
+                previousLine = line
+                try:
                     line = next(f)
-                lineList = line.split()
-                interfaceName = lineList[NAME_INDEX]
-                #feed the file through to the proper point
-                while "ip" not in line:
+                except StopIteration:
+                    raise ValueError("Context Not Found")
+            
+            if "transparent" in previousLine:#parsing for a bridged firewall, which is configured differently
+                pass
+                #TODO: parse differently if it's a bridged firewall
+            
+            else:
+                lineList = line.split()#dissect line into a list for easier parsing  
+                hostname = lineList[NAME_INDEX]
+                while "passwd " not in line:
                     line = next(f)
-                lineList = line.split() 
-                ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                vlanData = [interfaceName,ipNetwork]#re-create the list with better parsing
-                vlans.append(vlanData)
-                line = next(f)
+                    if "passwd" in line:
+                        break
+                    while "interface" not in line:
+                        line = next(f)
+                    lineList = line.split()
+                    interfaceName = lineList[NAME_INDEX]
+                    #feed the file through to the proper point
+                    while "ip" not in line:
+                        line = next(f)
+                    lineList = line.split() 
+                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
+                    vlanData = [interfaceName,ipNetwork]#re-create the list with better parsing
+                    vlans.append(vlanData)
+                    line = next(f)
+                    
             return (hostname,vlans)
 
 def readCommandlineArguments():
