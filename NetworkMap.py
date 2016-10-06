@@ -72,88 +72,80 @@ def readConfigFile(fileNameString, contextString):
     NAME_INDEX = 1
     VLAN_IP_INDEX = 2
     VLAN_MASK_INDEX = 3
-    context = "hostname " + contextString
-    hostname = "temp"
+    
+    context = "hostname " + contextString #the line of the context that starts the configuration
+    hostname = "" #the hostname to return
+    previousLine = "" #pre-declaring a string to be used in the case of a bridged context
+    vlans = [] #the list of interfaces to return
     
     #Open file and read in list of vlans to a list
-    vlans = []
     noContextFound = False
     with open(fileNameString) as f:
         for line in f:
-            #Parse through file and look for respective context to map
-            while context not in line:
-                previousLine = line
-                try:
-                    line = next(f)
-                except StopIteration:
-                    raise ValueError("Context Not Found")
-            
-            if "transparent" in previousLine:#parsing for a bridged firewall, which is configured differently
-                lineList = line.split()#dissect line into a list for easier parsing  
-                hostname = lineList[NAME_INDEX]
-                while "passwd" not in line:
-                    line = next(f)
-                    if "passwd" in line:
-                        break
-                    while "interface" not in line:
-                        line = next(f)
-                    lineList = line.split()
-                    if "inside" in lineList:
-                        interfaceName = lineList[NAME_INDEX]
-                        ipNetwork = "INSIDE_IP"
-                        vlanData = [interfaceName,ipNetwork]
-                        vlans.append(vlanData)
-                        print(vlans)
-                    if "outside" in lineList:
-                        interfaceName = lineList[NAME_INDEX]
-                        ipNetwork = "N/A"
-                        vlanData = [interfaceName,ipNetwork]
-                        vlans.append(vlanData)
-                        print(vlans)
-                    if "BVI1" in lineList:
-                        interfaceName = lineList[NAME_INDEX]
-                        
-                        #for n,i in enumerate(vlans):
-                        #    if i == "inside":
-                        #        vlans[n] = interfaceName
-                        
-                        #vlans = [v.replace('inside',interfaceName) for v in vlans]
-                        
-                        while "ip" not in line:
-                            line = next(f)
-                        lineList = line.split() 
-                        ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                        
-                        #for n,i in enumerate(vlans):
-                        #    if i == "INSIDE_IP":
-                        #        vlans[n] = ipNetwork
-                        
-                        
-                        #vlans = [v.replace('INSIDE_IP',ipNetwork) for v in vlans]
-                        
-                        vlans.append(vlanData)
-                        print(vlans)
-            else:
-                lineList = line.split()#dissect line into a list for easier parsing  
-                hostname = lineList[NAME_INDEX]
-                while "passwd " not in line:
-                    line = next(f)
-                    if "passwd" in line:
-                        break
-                    while "interface" not in line:
-                        line = next(f)
-                    lineList = line.split()
-                    interfaceName = lineList[NAME_INDEX]
-                    #feed the file through to the proper point
-                    while "ip" not in line:
-                        line = next(f)
-                    lineList = line.split() 
-                    ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cirIP
-                    vlanData = [interfaceName,ipNetwork]#re-create the list with better parsing
-                    vlans.append(vlanData)
-                    line = next(f)
+            #Parse through file and look for correct context to map
+            if context in line:
+                if "transparent" in previousLine:#parsing for a bridged firewall, which is configured differently
+                    lineList = line.split()#dissect line into a list for easier parsing  
+                    hostname = lineList[NAME_INDEX]
+                    insideVlanData = [None,None] #pre-set a special container for the "inside" interface
                     
-            return (hostname,vlans)
+                    #The "main loop" of the function, since we found the context we needed
+                    while "passwd" not in line: #loop until we reach the end of the part of the file that we need
+                        line = next(f)
+                        
+                        if "interface" in line:
+                            lineList = line.split()
+                            
+                            if "inside" in lineList:
+                                interfaceName = lineList[NAME_INDEX]
+                                insideVlanData[0] = interfaceName #set the "inside" object we had before to the proper interface name
+                                if insideVlanData[0] != None and insideVlanData[1] != None:
+                                    vlans.append(insideVlanData) #special object has been filled, so add it to the list
+                                
+                            if "outside" in lineList:
+                                interfaceName = lineList[NAME_INDEX]
+                                ipNetwork = "N/A"#no IP associated with the outside IP network in a bridged firewall
+                                vlanData = [interfaceName,ipNetwork]
+                                vlans.append(vlanData)
+                                
+                            if "BVI1" in lineList:
+                                #note that the interface name is not written down for this interface, because this interface contains the IP for the "inside" interface
+                                
+                                while "ip address" not in line:
+                                    line = next(f)#skip to the IP address of the interface
+                                
+                                IPLineList = line.split() 
+                                ipNetwork = ipNetworkFromMask(IPLineList[VLAN_IP_INDEX],IPLineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cidrIP
+                                insideVlanData[1] = ipNetwork #set the "inside" object we had before to the proper IP value
+                                if insideVlanData[0] != None and insideVlanData[1] != None:
+                                    vlans.append(insideVlanData) #special object has been filled, so add it to the list
+                    
+                    break #reached end of the part of the file that matters to us; ignore the rest of the file and kill the for loop
+                    
+                else: #not a bridged connection
+                    lineList = line.split()#dissect line into a list for easier parsing  
+                    hostname = lineList[NAME_INDEX]
+                    
+                    #The "main loop" of the function, since we found the context we needed
+                    while "passwd" not in line:
+                        line = next(f)
+                        
+                        if "interface" in line:
+                            lineList = line.split()
+                            interfaceName = lineList[NAME_INDEX] #write down the interface name
+                            
+                            while "ip address" not in line:
+                                line = next(f) #jump to the IP address of the interface
+                                
+                            lineList = line.split()
+                            ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cidrIP
+                            vlanData = [interfaceName,ipNetwork]
+                            vlans.append(vlanData)
+                    
+                    break #reached end of the part of the file that matters to us; ignore the rest of the file and kill the for loop
+            
+            previousLine = line#keep track of previous line in case of bridged networks
+        return (hostname,vlans)
 
 def readCommandlineArguments():
     #Runs through the list of command line arguments
