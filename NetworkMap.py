@@ -194,9 +194,7 @@ for item in contexts:
             dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
             graphData.append(dataTuple)#add the tuple to the graph
 
-for vlan in vlans:
-    dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
-    graphData.append(dataTuple)#add the tuple to the graph
+        print("Rendering VLAN for " +item+ "...")
 
 
         graph=nx.Graph()
