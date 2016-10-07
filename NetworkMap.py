@@ -21,29 +21,31 @@ def hierarchy_pos(G, root, width=1, vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 
        vert_loc: vertical location of root
        xcenter: horizontal location of root
     '''
-
-    def h_recur(G, root, width=1, vert_gap = 0.2, vert_loc = 0, xcenter = 0.5, 
-                  pos = None, parent = None, parsed = [] ):
-        if(root not in parsed):
-            parsed.append(root)
-            if pos == None:
-                pos = {root:(xcenter,vert_loc)}
-            else:
-                pos[root] = (xcenter, vert_loc)
-            neighbors = G.neighbors(root)
-            if parent != None:
-                neighbors.remove(parent)
-            if len(neighbors)!=0:
-                dx = width/len(neighbors) 
-                nextx = xcenter - width/2 - dx/2
-                for neighbor in neighbors:
-                    nextx += dx
-                    pos = h_recur(G,neighbor, width = dx, vert_gap = vert_gap, 
-                                        vert_loc = vert_loc-vert_gap, xcenter=nextx, pos=pos, 
-                                        parent = root, parsed = parsed)
-        return pos
-
-    return h_recur(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5)
+    try:
+        def h_recur(G, root, width=1, vert_gap = 0.2, vert_loc = 0, xcenter = 0.5, 
+                      pos = None, parent = None, parsed = [] ):
+            if(root not in parsed):
+                parsed.append(root)
+                if pos == None:
+                    pos = {root:(xcenter,vert_loc)}
+                else:
+                    pos[root] = (xcenter, vert_loc)
+                neighbors = G.neighbors(root)
+                if parent != None:
+                    neighbors.remove(parent)
+                if len(neighbors)!=0:
+                    dx = width/len(neighbors) 
+                    nextx = xcenter - width/2 - dx/2
+                    for neighbor in neighbors:
+                        nextx += dx
+                        pos = h_recur(G,neighbor, width = dx, vert_gap = vert_gap, 
+                                            vert_loc = vert_loc-vert_gap, xcenter=nextx, pos=pos, 
+                                            parent = root, parsed = parsed)
+            return pos
+            
+        return h_recur(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5)
+    except nx.NetworkXError: 
+        print("NetworkXError")
 
 def ipNetworkFromMask(addressString,subnetMaskString):
     '''
@@ -158,6 +160,7 @@ def readCommandlineArguments():
 #------------------------------------------------------------------------------------------------------
 
 #Process arguments from user with CONFIG FILE NAME and DMZ's to map
+contexts = [] #list to hold dmzs passed in the command line
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
 parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
@@ -167,30 +170,42 @@ if args.file:
         fileName = openFile(f)
 if args.dmz:
     for c in args.dmz:
-        contextName = c
+        contexts.append(c)
 
+#Create png for each dmz listed in context
+for item in contexts:
+    print("Reading file and compiling VLAN data for " +item+ "...")
 
-print("Reading file and compiling VLAN data...")
+    hostname,vlans = readConfigFile(fileName, item)
+    
+    #Check to see if hostname or vlans is NULL. If it is, an invalid dmz name was provided
+    if len(hostname)>0 and len(vlans)>0:
+        hostname = "{0}\n".format(hostname) #formatting!
 
-hostname,vlans = readConfigFile(fileName, contextName)#FST-E-WEB-DMZ-Config.txt                     FST-E-FWSM-Contexts
-hostname = "{0}\n".format(hostname) #formatting!
+        print("Parsing VLAN data for " +item+ "...")
 
-print("Parsing VLAN data...")
+        #static variables used when reading parsed vlan data and compiling the graph information
+        VLAN_DATA_NAME = 0
+        VLAN_DATA_IP_NETWORK = 1
 
-#static variables used when reading parsed vlan data and compiling the graph information
-VLAN_DATA_NAME = 0
-VLAN_DATA_IP_NETWORK = 1
+        graphData = []
 
-graphData = []
+        for vlan in vlans:
+            dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
+            graphData.append(dataTuple)#add the tuple to the graph
 
 for vlan in vlans:
     dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
     graphData.append(dataTuple)#add the tuple to the graph
 
-print("Rendering VLAN data...")
 
-graph=nx.Graph()
-graph.add_edges_from(graphData)
-pos = hierarchy_pos(graph,hostname)
-nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
-plt.show()
+        graph=nx.Graph()
+        graph.add_edges_from(graphData)
+        pos = hierarchy_pos(graph,hostname)
+        nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
+        plt.savefig(item+".png")
+        plt.clf()
+        print("Image saved to script directory\n\n")
+        #plt.show()
+    else:
+        print("ERROR: "+item+" IS AN INVALID DMZ NAME\n\n")
