@@ -4,8 +4,10 @@ A python script that visually maps network configurations automatically.
 
 **Goal** 
 
-Scan provided firewall and interface configurations and automatically generate a visual representations of the network for better understanding of how network is configured.
+This software will scan provided firewall and interface configurations and automatically generate a visual representations of the network for better understanding of how network is configured.
+
 The goal is to automate this visualization so that users can quickly and easily create easy-to-read visual maps of the network without having to devote a lot of time to manually drawing the network maps.
+
 This will also help less-educated network users to quickly understand and visualize how the network is interconnected with its various components, and provide a deeper understanding of the network, with minimal effort and time.
 
 **Technology Overview**
