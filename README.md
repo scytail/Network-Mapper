@@ -16,10 +16,10 @@ This project is built upon the Python 3.3 programming language, and uses configu
 
 **Prerequisites**
 
--Python 3.3 (or above)
--IPAddress module (usually included with the default python 3.3 installation)
--NetworkX module
--MatPlotLib module
+- Python 3.3 (or above)
+- IPAddress module (usually included with the default python 3.3 installation)
+- NetworkX module
+- MatPlotLib module
 
 ## Getting Started
 
