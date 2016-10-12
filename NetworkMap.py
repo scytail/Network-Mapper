@@ -73,15 +73,23 @@ def readConfigFile(fileNameString, vlanFileString, contextString):
     VLAN_IP_INDEX = 2
     VLAN_MASK_INDEX = 3
     
-    context = "hostname " + contextString #the line of the context that starts the configuration
+    context = "hostname " + contextString #the line of the context that starts the configuration in the dmz file
+    vlanContext = "context " + contextString #the line of the context that starts the configuration in the vlan file
     hostname = "" #the hostname to return
     previousLine = "" #pre-declaring a string to be used in the case of a bridged context
     vlans = [] #the list of interfaces to return
+    vlanData = []  #list of dmzs with their corresponding vlan data
     
     #open file containing vlan numbers for interfaces and add them to a list
     with open(vlanFileString) as v:
         for line in v:
-            
+            while vlanContext not in line:
+                line = next(v)
+            line = next(v)
+            while "!" not in line:
+                vlanData.append(line.rstrip('\n'))
+                line = next(v)
+            break
     
     #Open file and read in list of vlans to a list
     with open(fileNameString) as f:
@@ -123,6 +131,7 @@ def readConfigFile(fileNameString, vlanFileString, contextString):
                                 insideVlanData[1] = ipNetwork #set the "inside" object we had before to the proper IP value
                                 if insideVlanData[0] != None and insideVlanData[1] != None:
                                     vlans.append(insideVlanData) #special object has been filled, so add it to the list
+
                     
                     break #reached end of the part of the file that matters to us; ignore the rest of the file and kill the for loop
                     
