@@ -65,7 +65,7 @@ def openFile(fileName):
         
     return(fileName)
             
-def readConfigFile(fileNameString, contextString):
+def readConfigFile(fileNameString, vlanFileString, contextString):
     '''
        Reads a given firewall configuration file for its VLAN configuations
     '''
@@ -80,8 +80,12 @@ def readConfigFile(fileNameString, contextString):
     previousLine = "" #pre-declaring a string to be used in the case of a bridged context
     vlans = [] #the list of interfaces to return
     
+    #open file containing vlan numbers for interfaces and add them to a list
+    with open(vlanFileString) as v:
+        for line in v:
+            
+    
     #Open file and read in list of vlans to a list
-    noContextFound = False
     with open(fileNameString) as f:
         for line in f:
             #Parse through file and look for correct context to map
@@ -163,11 +167,15 @@ def readCommandlineArguments():
 contexts = [] #list to hold dmzs passed in the command line
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
+parser.add_argument("-v", "--vlan", nargs="+", help="Name of file with vlan data", required=True)
 parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
 args = parser.parse_args()
 if args.file:
     for f in args.file:
         fileName = openFile(f)
+if args.vlan:
+    for v in args.vlan:
+        vlanFile = openFile(v)
 if args.dmz:
     for c in args.dmz:
         contexts.append(c)
@@ -176,7 +184,7 @@ if args.dmz:
 for item in contexts:
     print("Reading file and compiling VLAN data for " +item+ "...")
 
-    hostname,vlans = readConfigFile(fileName, item)
+    hostname,vlans = readConfigFile(fileName, vlanFile, item)
     
     #Check to see if hostname or vlans is NULL. If it is, an invalid dmz name was provided
     if len(hostname)>0 and len(vlans)>0:
