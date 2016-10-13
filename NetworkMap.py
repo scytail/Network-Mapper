@@ -33,7 +33,7 @@ def hierarchy_pos(G, root, width=1, vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 
             if parent != None:
                 neighbors.remove(parent)
             if len(neighbors)!=0:
-                dx = width/len(neighbors) 
+                dx = width/len(neighbors)
                 nextx = xcenter - width/2 - dx/2
                 for neighbor in neighbors:
                     nextx += dx
@@ -186,17 +186,28 @@ for item in contexts:
         VLAN_DATA_IP_NETWORK = 1
 
         graphData = []
-
+        maxLabelStringLength = -1
+        
         for vlan in vlans:
+            #find the longest string length in the VLANs
+            if len(vlan[VLAN_DATA_NAME]) > maxLabelStringLength:
+                maxLabelStringLength = len(vlan[VLAN_DATA_NAME])
+            if len(str(vlan[VLAN_DATA_IP_NETWORK])) > maxLabelStringLength:
+                maxLabelStringLength = len(str(vlan[VLAN_DATA_IP_NETWORK]))
+            
             dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
             graphData.append(dataTuple)#add the tuple to the graph
+        
+        maxLabelPixelLength = maxLabelStringLength*16 #get the pixel space required for the longest string (each character requires approximately 16 pixels)
+        maxTotalPixelLength = maxLabelPixelLength*len(vlans) #get the maximum number of pixels required (the label with the most amount of pixels times the number of lables)
+        maxInchWidth = maxTotalPixelLength/80 #80 pixels per inch, so convert the total number of pixels required to inches
 
         print("Rendering VLAN for " +item+ "...")
-
-
+        
         graph=nx.Graph()
         graph.add_edges_from(graphData)
         pos = hierarchy_pos(graph,hostname)
+        plt.figure(figsize=(maxInchWidth,6)) #size of the image
         nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
         plt.savefig(item+".png")
         plt.clf()
