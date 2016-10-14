@@ -234,16 +234,16 @@ for item in contexts:
             maxTotalPixelLength = maxLabelPixelLength*len(vlans) #get the maximum number of pixels required (the label with the most amount of pixels times the number of lables)
             maxInchWidth = maxTotalPixelLength/80 #80 pixels per inch, so convert the total number of pixels required to inches
 
-            print("Rendering VLAN for " +item+ "...")
-            
-            graph=nx.Graph()
-            graph.add_edges_from(graphData)
-            pos = hierarchy_pos(graph,hostname)
-            plt.figure(figsize=(maxInchWidth,6)) #size of the image
-            nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
-            plt.savefig(item+".png")
-            plt.clf()
-            print("Image saved to script directory\n\n")
-            #plt.show()
+        print("Rendering VLAN for " +item+ "...")
+        
+        graph=nx.Graph()
+        graph.add_edges_from(graphData)
+        pos = hierarchy_pos(graph,hostname)
+        plt.figure(figsize=(maxInchWidth,6)) #size of the image
+        nx.draw(graph, pos=pos, with_labels=True, node_shape='s', node_size=1) #, node_size=[len(v) * 300 for v in graph.nodes()]
+        plt.savefig(item+".png")
+        plt.clf()
+        print("Image saved to script directory\n\n")
+        #plt.show()
     else:
         print("ERROR: "+item+" IS AN INVALID DMZ NAME\n\n")
