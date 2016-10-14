@@ -55,14 +55,15 @@ def ipNetworkFromMask(addressString,subnetMaskString):
 #Function to make sure user has passed valid file"    
 def openFile(fileName):
     try:
-        open(fileName)
+        f = open(fileName)
+        f.close()
     except OSError:
         print ("Invalid configuration file name")
         sys.exit(0)
         
     return(fileName)
             
-def readConfigFile(fileNameString, contextString):
+def readConfigFile(fileNameString, vlanFileString, contextString):
     '''
        Reads a given firewall configuration file for its VLAN configuations
     '''
@@ -71,14 +72,28 @@ def readConfigFile(fileNameString, contextString):
     NAME_INDEX = 1
     VLAN_IP_INDEX = 2
     VLAN_MASK_INDEX = 3
+    VLAN_NAME_INDEX = 1
     
-    context = "hostname " + contextString #the line of the context that starts the configuration
+    context = "hostname " + contextString #the line of the context that starts the configuration in the dmz file
+    vlanContext = "context " + contextString #the line of the context that starts the configuration in the vlan file
     hostname = "" #the hostname to return
     previousLine = "" #pre-declaring a string to be used in the case of a bridged context
     vlans = [] #the list of interfaces to return
+    vlanDataList = []  #list of dmzs with their corresponding vlan data
+    vlanDataInfo = "" # string containing the vlan number to be added to the image
+    
+    #open file containing vlan numbers for interfaces and add them to a list
+    with open(vlanFileString) as v:
+        for line in v:
+            while vlanContext not in line:
+                line = next(v)
+            line = next(v)
+            while "!" not in line:
+                vlanDataList.append(line.rstrip())
+                line = next(v)
+            break
     
     #Open file and read in list of vlans to a list
-    noContextFound = False
     with open(fileNameString) as f:
         for line in f:
             #Parse through file and look for correct context to map
@@ -86,7 +101,7 @@ def readConfigFile(fileNameString, contextString):
                 if "transparent" in previousLine:#parsing for a bridged firewall, which is configured differently
                     lineList = line.split()#dissect line into a list for easier parsing  
                     hostname = lineList[NAME_INDEX]
-                    insideVlanData = [None,None] #pre-set a special container for the "inside" interface
+                    insideVlanData = [None,None,None] #pre-set a special container for the "inside" interface
                     
                     #The "main loop" of the function, since we found the context we needed
                     while "passwd" not in line: #loop until we reach the end of the part of the file that we need
@@ -104,7 +119,11 @@ def readConfigFile(fileNameString, contextString):
                             if "outside" in lineList:
                                 interfaceName = lineList[NAME_INDEX]
                                 ipNetwork = "N/A"#no IP associated with the outside IP network in a bridged firewall
-                                vlanData = [interfaceName,ipNetwork]
+                                for v in vlanDataList: #Get respective vlan number to add to vlanData
+                                    if "outside" in v:
+                                        splitString = v.split()
+                                        vlanDataInfo = splitString[VLAN_NAME_INDEX]
+                                vlanData = [interfaceName,ipNetwork, vlanDataInfo]
                                 vlans.append(vlanData)
                                 
                             if "BVI1" in lineList:
@@ -116,8 +135,13 @@ def readConfigFile(fileNameString, contextString):
                                 IPLineList = line.split() 
                                 ipNetwork = ipNetworkFromMask(IPLineList[VLAN_IP_INDEX],IPLineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cidrIP
                                 insideVlanData[1] = ipNetwork #set the "inside" object we had before to the proper IP value
+                                for v in vlanDataList: #Get respective vlan number to add to vlanData
+                                    if "inside" in v:
+                                        splitString = v.split()
+                                        insideVlanData[2] = splitString[VLAN_NAME_INDEX]
                                 if insideVlanData[0] != None and insideVlanData[1] != None:
                                     vlans.append(insideVlanData) #special object has been filled, so add it to the list
+
                     
                     break #reached end of the part of the file that matters to us; ignore the rest of the file and kill the for loop
                     
@@ -132,13 +156,16 @@ def readConfigFile(fileNameString, contextString):
                         if "interface" in line:
                             lineList = line.split()
                             interfaceName = lineList[NAME_INDEX] #write down the interface name
-                            
                             while "ip address" not in line:
                                 line = next(f) #jump to the IP address of the interface
                                 
                             lineList = line.split()
                             ipNetwork = ipNetworkFromMask(lineList[VLAN_IP_INDEX],lineList[VLAN_MASK_INDEX])#create an IPv4Network object that can be read as a cidrIP
-                            vlanData = [interfaceName,ipNetwork]
+                            for v in vlanDataList: #Get respective vlan number to add to vlanData
+                                if interfaceName in v:
+                                    splitString = v.split()
+                                    vlanDataInfo = splitString[VLAN_NAME_INDEX]
+                            vlanData = [interfaceName,ipNetwork,vlanDataInfo]
                             vlans.append(vlanData)
                     
                     break #reached end of the part of the file that matters to us; ignore the rest of the file and kill the for loop
@@ -160,11 +187,15 @@ def readCommandlineArguments():
 contexts = [] #list to hold dmzs passed in the command line
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
+parser.add_argument("-v", "--vlan", nargs="+", help="Name of file with vlan data", required=True)
 parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
 args = parser.parse_args()
 if args.file:
     for f in args.file:
         fileName = openFile(f)
+if args.vlan:
+    for v in args.vlan:
+        vlanFile = openFile(v)
 if args.dmz:
     for c in args.dmz:
         contexts.append(c)
@@ -173,7 +204,7 @@ if args.dmz:
 for item in contexts:
     print("Reading file and compiling VLAN data for " +item+ "...")
 
-    hostname,vlans = readConfigFile(fileName, item)
+    hostname,vlans = readConfigFile(fileName, vlanFile, item)
     
     #Check to see if hostname or vlans is NULL. If it is, an invalid dmz name was provided
     if len(hostname)>0 and len(vlans)>0:
@@ -184,6 +215,7 @@ for item in contexts:
         #static variables used when reading parsed vlan data and compiling the graph information
         VLAN_DATA_NAME = 0
         VLAN_DATA_IP_NETWORK = 1
+        VLAN_DATA_INFO = 2
 
         graphData = []
         maxLabelStringLength = -1
@@ -195,7 +227,7 @@ for item in contexts:
             if len(str(vlan[VLAN_DATA_IP_NETWORK])) > maxLabelStringLength:
                 maxLabelStringLength = len(str(vlan[VLAN_DATA_IP_NETWORK]))
             
-            dataTuple = (hostname,"\n\n{0}\n{1}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK])))#build the tuple
+            dataTuple = (hostname,"\n\n\n{0}\n{1}\n{2}".format(vlan[VLAN_DATA_NAME],str(vlan[VLAN_DATA_IP_NETWORK]),vlan[VLAN_DATA_INFO]))#build the tuple
             graphData.append(dataTuple)#add the tuple to the graph
         
         maxLabelPixelLength = maxLabelStringLength*16 #get the pixel space required for the longest string (each character requires approximately 16 pixels)
