@@ -85,13 +85,17 @@ def readConfigFile(fileNameString, vlanFileString, contextString):
     #open file containing vlan numbers for interfaces and add them to a list
     with open(vlanFileString) as v:
         for line in v:
-            while vlanContext not in line:
+            try:
+                while vlanContext not in line:
+                    line = next(v)
                 line = next(v)
-            line = next(v)
-            while "!" not in line:
-                vlanDataList.append(line.rstrip())
-                line = next(v)
-            break
+                while "!" not in line:
+                    vlanDataList.append(line.rstrip())
+                    line = next(v)
+                break
+            except StopIteration:
+                print("ERROR: "+vlanContext+" not found in "+vlanFileString)
+            
     
     #Open file and read in list of vlans to a list
     with open(fileNameString) as f:
