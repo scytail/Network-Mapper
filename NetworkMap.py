@@ -58,7 +58,7 @@ def openFile(fileName):
         f = open(fileName)
         f.close()
     except OSError:
-        print ("Invalid configuration file name")
+        print ("Invalid configuration file name, use '-h' argument for help menu")
         sys.exit(0)
         
     return(fileName)
@@ -192,7 +192,9 @@ def readCommandlineArguments():
 
 #Process arguments from user with CONFIG FILE NAME and DMZ's to map
 contexts = [] #list to hold dmzs passed in the command line
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+    description = 'A python script that visually maps network configurations automatically.',
+    epilog = 'example: python NetworkMap.py -f contexts.txt -v sys-level.txt  -d vlan1 vlan2 vlan3')
 parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
 parser.add_argument("-v", "--vlan", nargs="+", help="Name of file with vlan data", required=False)
 parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
