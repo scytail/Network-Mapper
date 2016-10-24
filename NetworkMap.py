@@ -64,6 +64,8 @@ def openFile(fileName):
     return(fileName)
             
 def readConfigFile(fileNameString, vlanFileString, contextString):
+    if vlanFileString == None:
+        print("vlan file string is none")
     '''
        Reads a given firewall configuration file for its VLAN configuations
     '''
@@ -83,18 +85,19 @@ def readConfigFile(fileNameString, vlanFileString, contextString):
     vlanDataInfo = "" # string containing the vlan number to be added to the image
     
     #open file containing vlan numbers for interfaces and add them to a list
-    with open(vlanFileString) as v:
-        for line in v:
-            try:
-                while vlanContext not in line:
+    if vlanFileString != None:
+        with open(vlanFileString) as v:
+            for line in v:
+                try:
+                    while vlanContext not in line:
+                        line = next(v)
                     line = next(v)
-                line = next(v)
-                while "!" not in line:
-                    vlanDataList.append(line.rstrip())
-                    line = next(v)
-                break
-            except StopIteration:
-                print("ERROR: "+vlanContext+" not found in "+vlanFileString)
+                    while "!" not in line:
+                        vlanDataList.append(line.rstrip())
+                        line = next(v)
+                    break
+                except StopIteration:
+                    print("ERROR: "+vlanContext+" not found in "+vlanFileString)
             
     
     #Open file and read in list of vlans to a list
@@ -191,15 +194,19 @@ def readCommandlineArguments():
 contexts = [] #list to hold dmzs passed in the command line
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
-parser.add_argument("-v", "--vlan", nargs="+", help="Name of file with vlan data", required=True)
+parser.add_argument("-v", "--vlan", nargs="+", help="Name of file with vlan data", required=False)
 parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
 args = parser.parse_args()
 if args.file:
     for f in args.file:
         fileName = openFile(f)
+        
 if args.vlan:
     for v in args.vlan:
         vlanFile = openFile(v)
+else:
+    vlanFile = None
+    
 if args.dmz:
     for c in args.dmz:
         contexts.append(c)
