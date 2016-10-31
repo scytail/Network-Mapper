@@ -195,9 +195,10 @@ contexts = [] #list to hold dmzs passed in the command line
 parser = argparse.ArgumentParser(
     description = 'A python script that visually maps network configurations automatically.',
     epilog = 'example: python NetworkMap.py -f contexts.txt -v sys-level.txt  -d vlan1 vlan2 vlan3')
-parser.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
+requiredNamed = parser.add_argument_group('required arguments')
+requiredNamed.add_argument("-f", "--file", nargs="+", help="Name of configuration file", required=True)
 parser.add_argument("-v", "--vlan", nargs="+", help="Name of file with vlan data", required=False)
-parser.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
+requiredNamed.add_argument("-d", "--dmz", nargs="+", help="Name of DMZ in configuration file", required=True)
 args = parser.parse_args()
 if args.file:
     for f in args.file:
