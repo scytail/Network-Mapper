@@ -40,9 +40,11 @@ _note: If one has python 3.* set up as their default python install, then they c
 **The following arguments are accepted:**
 
 - `-f ConfigurationFileName` OR `--file ConfigurationFileName`
-    - The name of the configuration file to be read by the software
+    - The name of the configuration file to be read by the software (REQUIRED)
 - `-d DMZName` OR `--dmz DMZName`
-    - The name of the DMZ to look for in the provided file
+    - The name of the DMZ to look for in the provided file (REQUIRED)
+- `-v VLANConfigFile` OR `--vlan VLANConfigFile`
+    - The name of the VLAN configuration file denoting what interfaces on the network correspond with which VLAN names
 
 ## Authors / Owners
 
