@@ -17,25 +17,27 @@ This project is built upon the Python 3.3 programming language, and uses configu
 **Prerequisites**
 
 - Python 3.3 (or above)
-- IPAddress module (usually included with the default python 3.3 installation)
-- NetworkX module
-- MatPlotLib module
+- pip
+- virtualenv
+- internet connection (for set up)
 
 ## Getting Started
 
-Install the required modules by using `pip install ModuleName`.
+**Installation**
 
-**Execution:**
+1. Navigate to the directory that the script will execute from in a CLI
+2. Execute the command `virtualenv venv`. This will create a virtual python environment called venv and will save the environment files in a local directory called `venv`.
+    - Note that, if the default python installation is 2.7 (execute `python --version` to check), the command `virtualenv venv -p /full/path/to/python3/directory` should be used instead.
+3. Activate the virtual environment by running `source bin/Scripts/activate` (or, on a Windows installation, `.\bin\Scripts\activate`).
+    - After executing this script, there will be `(venv)` written before the path in the CLI.
+4. Install the required dependencies by running `pip install -r requirements.txt`. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
+5. Exit the virtual environment with the command `deactivate`. The small `(venv)` indicator will disappear from the CLI.
 
-Linux/Mac:
+**Execution**
 
-`$ python3 NetworkMap.py [arguments]`
-
-Windows:
-
-`$ py -3 NetworkMap.py [arguments]`
-
-_note: If one has python 3.* set up as their default python install, then they can simply execute the script with_ `python NetworkMap.py`_, regardless of system._
+1. Enter the virtual environment: `source bin/Scripts/activate` or, on a Windows installation: `.\bin\Scripts\activate`
+2. Run the script: `python NetworkMap.py [arguments]`
+3. Leave the virtual environment when finished: `deactivate`
 
 **The following arguments are accepted:**
 
@@ -45,6 +47,12 @@ _note: If one has python 3.* set up as their default python install, then they c
     - The name of the DMZ to look for in the provided file (REQUIRED)
 - `-v VLANConfigFile` OR `--vlan VLANConfigFile`
     - The name of the VLAN configuration file denoting what interfaces on the network correspond with which VLAN names
+
+**Troubleshooting**
+
+- Sometimes, if the virtual environment is not set up correctly, the wrong installation of python will be used. type in `which python` to check the location of the python installation being used.
+- Virtualenv automatically installs the default Python installation (if there are multiple versions of Python installed). Make sure the proper version of python is being used by the virtual environment.
+    - To force virtualenv to use a specific version of python when creating a virtual environment, run `virtualenv venv -p /path/to/specific/python/installation/directory`.
 
 ## Authors / Owners
 
