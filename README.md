@@ -17,36 +17,40 @@ This project is built upon the Python 3.3 programming language, and uses configu
 **Prerequisites**
 
 - Python 3.3 (or above)
-- pip
+    - pip
 - virtualenv
+- graphviz
 - internet connection (for set up)
 
 ## Getting Started
 
 **Installation**
 
-1. Navigate to the directory that the script will execute from in a CLI
+1. Navigate to the directory that the script will execute from in a CLI (like command prompt or terminal)
 2. Execute the command `virtualenv venv`. This will create a virtual python environment called venv and will save the environment files in a local directory called `venv`.
     - Note that, if the default python installation is 2.7 (execute `python --version` to check), the command `virtualenv venv -p /full/path/to/python3/directory` should be used instead.
-3. Activate the virtual environment by running `source bin/Scripts/activate` (or, on a Windows installation, `.\bin\Scripts\activate`).
+3. Activate the virtual environment by running `source venv/Scripts/activate` (or, on a Windows installation, `.venv\Scripts\activate`).
     - After executing this script, there will be `(venv)` written before the path in the CLI.
 4. Install the required dependencies by running `pip install -r requirements.txt`. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
 5. Exit the virtual environment with the command `deactivate`. The small `(venv)` indicator will disappear from the CLI.
+6. Download the graphviz library from the [Graphviz website](http://www.graphviz.org/Download.php)
 
 **Execution**
 
-1. Enter the virtual environment: `source bin/Scripts/activate` or, on a Windows installation: `.\bin\Scripts\activate`
-2. Run the script: `python NetworkMap.py [arguments]`
-3. Leave the virtual environment when finished: `deactivate`
+1. Navigate to the directory that the script will execute from in a CLI (like command prompt or terminal)
+2. Enter the virtual environment: `source venv/Scripts/activate` or, on a Windows installation: `.\venv\Scripts\activate`
+3. Run the script: `python NetworkMap.py <arguments>`
+4. Leave the virtual environment when finished: `deactivate`
 
-**The following arguments are accepted:**
+**The following arguments are required:**
 
-- `-f ConfigurationFileName` OR `--file ConfigurationFileName`
-    - The name of the configuration file to be read by the software (REQUIRED)
-- `-d DMZName` OR `--dmz DMZName`
-    - The name of the DMZ to look for in the provided file (REQUIRED)
-- `-v VLANConfigFile` OR `--vlan VLANConfigFile`
-    - The name of the VLAN configuration file denoting what interfaces on the network correspond with which VLAN names
+`-c <filename>` OR `--contexts <filename>`: The name of the FWSM contexts file.
+
+`-f <filename>` OR `--config <filename>`: The name of the distribution switch config file.
+
+`-s <filename>` OR `--system <filename>`: The name of the FWSM system level file.
+
+`-v <filename>` OR `--vlans <filename>`: The name of the distribution switch vlans file.
 
 **Troubleshooting**
 
@@ -56,5 +60,6 @@ This project is built upon the Python 3.3 programming language, and uses configu
 
 ## Authors / Owners
 
-- Kevin Njuguna [njuguna@slu.edu]
 - Ben Schwabe [schwabebp@slu.edu]
+
+Please see `LICENCE.md` for more information.
