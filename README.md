@@ -29,7 +29,7 @@ This project is built upon the Python 3.3 programming language, and uses configu
 1. Navigate to the directory that the script will execute from in a CLI (like command prompt or terminal)
 2. Execute the command `virtualenv venv`. This will create a virtual python environment called venv and will save the environment files in a local directory called `venv`.
     - Note that, if the default python installation is 2.7 (execute `python --version` to check), the command `virtualenv venv -p /full/path/to/python3/directory` should be used instead.
-3. Activate the virtual environment by running `source venv/Scripts/activate` (or, on a Windows installation, `.venv\Scripts\activate`).
+3. Activate the virtual environment by running `source venv/Scripts/activate` (or, on a Windows installation, `.\venv\Scripts\activate`).
     - After executing this script, there will be `(venv)` written before the path in the CLI.
 4. Install the required dependencies by running `pip install -r requirements.txt`. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
 5. Exit the virtual environment with the command `deactivate`. The small `(venv)` indicator will disappear from the CLI.
