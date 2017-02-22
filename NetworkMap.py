@@ -49,7 +49,7 @@ def printDataTree(vlansDict,contextsDict):
 # Process arguments from the user
 parser = argparse.ArgumentParser(
     description = 'A python script that visually maps network configurations automatically.',
-    epilog = 'example: python NetworkMap.py -f contexts.txt -v sys-level.txt  -d vlan1 vlan2 vlan3')
+    epilog = 'example: python NetworkMap.py -c fwsm_contexts.txt -s fwsm_contexts.txt  -f switch_config.txt -v switch_vlans.txt')
 requiredNamed = parser.add_argument_group('required arguments')
 requiredNamed.add_argument("-c", "--contexts", nargs="+", help="Name of the FWSM contexts file", required=True)
 requiredNamed.add_argument("-f", "--config", nargs="+", help="Name of the distribution switch config file", required=True)
@@ -134,12 +134,14 @@ with open(sysLevelFileName,"r") as sysLvlFile:
 # STEP 3: Copy ips and descriptions for vlans
 with open(switchConfigFileName,"r") as switchConfigFile:
     vlanIndex = ""
+    # Get the name of the switch
     for line in switchConfigFile:
         lineList = line.split()
         if len(lineList) > 0:  # skip empty lines
             if lineList[0] == "hostname":
                 nameOfSwitch = lineList[1]
                 break
+    # Get the Vlan data
     for line in switchConfigFile:
         lineList = line.split()
         if len(lineList) > 0:  # skip empty lines
@@ -148,6 +150,12 @@ with open(switchConfigFileName,"r") as switchConfigFile:
                 while(lineList[0] != "!"):
                     line = next(switchConfigFile)
                     lineList = line.split()
+                    
+                    try:
+                        vlansDict[vlanIndex]  # Test to see if the vlan is in the list
+                    except KeyError:
+                        # Vlan was not in the list, so add it before continuing to parse
+                        vlansDict[vlanIndex] = {"interface":None,"description":"","ip":""}
                     
                     if lineList[0] == "description":
                         descriptionString = " ".join(lineList[1:])  # combine the rest of the line into a description
