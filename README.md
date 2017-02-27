@@ -39,7 +39,14 @@ This project is built upon the Python 3.3 programming language, and uses configu
 4. Install the required dependencies by running `pip install -r requirements.txt` in the CLI. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
 5. Exit the virtual environment with the command `deactivate` in the CLI. The `(venv)` indicator will disappear from the CLI.
 6. Download the Graphviz library installer from the [Graphviz website](http://www.graphviz.org/Download.php) and install it.
-7. Execute the `AddGraphvizToPath.vbs` script. This script needs administrative priveleges and will edit the `Path` variable so that the Python script can access the Graphviz installation.
+7. If on Windows, add `example\path\to\graphviz\bin` to the system path, where `example\path\to\graphviz` is the path to the graphviz installation directory.
+    - Open Control Panel
+    - Search for "system environment variables" and select the option "Edit the system environment variables"
+    - Select the "Environment Variables..." button in the bottom right of the window
+    - Find the "Path" option under the *System Variables* list box (it is usually the bottom list box, and has more available options in it) and select the "Edit..." button beneath the list box
+    - If on Windows 8 or 10, select the "New" button from the right side and in the new list item that pops up at the bottom left, add `C:\Program Files (x86)\Graphviz2.38\bin` to the list. (This may change, depending on the version of graphviz and the install location. The last folder, however, will always be `\bin`.)
+    - If on windows 7 or below, go to the end of the long editable string already there and add a semicolon if there is not already one there, followed by `C:\Program Files (x86)\Graphviz2.38\bin`. (This may change, depending on the version of graphviz and the install location. The last folder, however, will always be `\bin`.)
+    - Select Ok to save and close, then Select OK to save and close the environment variables in general. Select "Apply" to apply the system properties, then select "OK" to close the system properties window.
 
 **Execution**
 
