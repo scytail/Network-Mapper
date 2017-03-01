@@ -39,6 +39,7 @@ This project is built upon the Python 3.3 programming language, and uses configu
 8. Install the required dependencies by running `pip install -r requirements.txt` in the CLI. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
 9. Exit the virtual environment with the command `deactivate` in the CLI. The `(venv)` indicator will disappear from the CLI.
 6. Download the Graphviz library installer from the [Graphviz website](http://www.graphviz.org/Download.php) and install it.
+    - Usually, the compiled installer (.msi on Windows) is preferred.
 10. If on Windows, add `example\path\to\graphviz\bin` to the system path, where `example\path\to\graphviz` is the path to the graphviz installation directory.
     - Open Control Panel
     - Search for "system environment variables" and select the option "Edit the system environment variables"
