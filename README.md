@@ -32,14 +32,14 @@ This project is built upon the Python 3.3 programming language, and uses configu
     - When installing, make *SURE* the installer is told to add python to the path variable (the checkbox for this is by default unchecked on some systems). The option for this is usually on the first screen of the installer executable.
 4. Navigate to the directory that the script will execute from in a CLI (like command prompt or terminal). This is done by using the `cd` command.
 5. Install `virtualenv` by running the command `pip install virtualenv` from the CLI window.
-2. Execute the command `virtualenv venv` in the CLI. This will create a virtual python environment called venv and will save the environment files in a local directory called `venv`.
+6. Execute the command `virtualenv venv` in the CLI. This will create a virtual python environment called venv and will save the environment files in a local directory called `venv`.
     - Note that, if the default python installation is 2.7 (execute `python --version` to check), the command `virtualenv venv -p /full/path/to/python3/directory` should be used instead.
-3. Activate the virtual environment by running `source venv/Scripts/activate` (or, on a Windows installation, `.venv\Scripts\activate`) in the CLI.
+7. Activate the virtual environment by running `source venv/Scripts/activate` (or, on a Windows installation, `.\venv\Scripts\activate`) in the CLI.
     - After executing this script, there will be `(venv)` written before the path in the CLI.
-4. Install the required dependencies by running `pip install -r requirements.txt` in the CLI. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
-5. Exit the virtual environment with the command `deactivate` in the CLI. The `(venv)` indicator will disappear from the CLI.
+8. Install the required dependencies by running `pip install -r requirements.txt` in the CLI. Depending on the internet connection and the disk speed, this command may take a few minutes to complete.
+9. Exit the virtual environment with the command `deactivate` in the CLI. The `(venv)` indicator will disappear from the CLI.
 6. Download the Graphviz library installer from the [Graphviz website](http://www.graphviz.org/Download.php) and install it.
-7. If on Windows, add `example\path\to\graphviz\bin` to the system path, where `example\path\to\graphviz` is the path to the graphviz installation directory.
+10. If on Windows, add `example\path\to\graphviz\bin` to the system path, where `example\path\to\graphviz` is the path to the graphviz installation directory.
     - Open Control Panel
     - Search for "system environment variables" and select the option "Edit the system environment variables"
     - Select the "Environment Variables..." button in the bottom right of the window
